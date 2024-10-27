@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { Board, Player, Position } from '../types/chess';
+import { isPathClear } from '../utils/chessUtils';
 import { ChessPiece } from './ChessPiece';
 import { MoveIndicator } from './MoveIndicator';
-import { isPathClear } from '../utils/chessUtils';
-import type { Board, Player, Position } from '../types/chess';
 
 const initialBoard: Board = [
   ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
@@ -165,14 +165,18 @@ export function ChessBoard() {
         </div>
       </div>
       
-      <div className="bg-white p-6 rounded-lg shadow-lg min-w-[300px]">
-        <h2 className="text-xl font-bold mb-4 text-slate-800">Move History</h2>
-        <div className="max-h-[400px] overflow-y-auto">
-          {moveHistory.map((move, index) => (
-            <div key={index} className="py-1 border-b text-slate-700">
-              {index + 1}. {move}
-            </div>
-          ))}
+      <div className="flex flex-col md:flex-row items-start gap-8 p-4">
+        <div className="flex flex-col items-center">
+          <div className="text-xl font-semibold mb-4 text-slate-800">
+            Move History
+          </div>
+          <div className="max-h-[400px] overflow-y-auto">
+            {moveHistory.map((move, index) => (
+              <div key={index} className="py-1 border-b text-slate-700">
+                {index + 1}. {move}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,5 @@
-import React from 'react';
+import { FlameIcon } from 'lucide-react';
 import { ChessBoard } from './components/ChessBoard';
-import { GithubIcon } from 'lucide-react';
 
 function App() {
   return (
@@ -8,8 +7,8 @@ function App() {
       <header className="bg-slate-900 text-slate-50 p-4 shadow-lg">
         <div className="container mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            <GithubIcon className="w-8 h-8" />
-            React Chess
+            <FlameIcon className="w-8 h-8" />
+            AI Chess
           </h1>
         </div>
       </header>

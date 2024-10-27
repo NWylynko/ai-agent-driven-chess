@@ -1,4 +1,3 @@
-import React from 'react';
 
 const pieceUnicode: { [key: string]: string } = {
   'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',  // white pieces
