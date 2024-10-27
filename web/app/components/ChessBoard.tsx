@@ -3,20 +3,8 @@ import type { Board, Player, Position } from '../types/chess';
 import { isPathClear } from '../utils/chessUtils';
 import { ChessPiece } from './ChessPiece';
 import { MoveIndicator } from './MoveIndicator';
-
-// Dummy function for AI move generation
-async function generateAIMove(_board: Board) {
-  // Here you would replace this with actual AI logic
-  // For example, call a minimax function or a backend API for the move
-
-  console.log(_board)
-
-  return {
-    from: { row: 1, col: 0 }, // Example move
-    to: { row: 3, col: 0 },   // Example move
-    reason: 'AI move'
-  };
-}
+import { generateAIMove } from './generateAIMove';
+import { recordGameBoard } from '../actions';
 
 const initialBoard: Board = [
   ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
@@ -38,6 +26,7 @@ export function ChessBoard() {
     to: string;
     reason: string | null;
   }[]>([]);
+  const [gameId] = useState<string>(crypto.randomUUID());
 
   const isValidMove = (fromRow: number, fromCol: number, toRow: number, toCol: number): boolean => {
     const piece = board[fromRow][fromCol];
@@ -109,6 +98,8 @@ export function ChessBoard() {
       const isWhitePiece = piece === piece.toUpperCase();
       if (currentPlayer === 'white' && !isWhitePiece) return;
 
+      if (piece === " ") return; // don't allow selecting whitespace
+
       setSelectedPiece({ row, col });
     } else {
       if (isValidMove(selectedPiece.row, selectedPiece.col, row, col)) {
@@ -134,6 +125,8 @@ export function ChessBoard() {
   
     setBoard(newBoard);
     setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
+
+    void recordGameBoard(gameId, newBoard)
   };
 
   // Handles AI's move on black's turn
@@ -166,7 +159,7 @@ export function ChessBoard() {
                   key={`${rowIndex}-${colIndex}`}
                   className={`
                     relative w-16 h-16 flex items-center justify-center
-                    ${isLight ? 'bg-amber-50' : 'bg-indigo-700'}
+                    ${isLight ? 'bg-amber-50' : 'bg-indigo-400'}
                     ${isSelected ? 'ring-4 ring-yellow-400' : ''}
                     transition-all duration-200 hover:opacity-90 cursor-pointer
                   `}
@@ -183,7 +176,7 @@ export function ChessBoard() {
         </div>
       </div>
       
-      <div className="flex flex-col items-center">
+      <div className="flex flex-col items-center max-w-[300px]">
         <div className="text-xl font-semibold mb-4 text-slate-800">
           Move History
         </div>

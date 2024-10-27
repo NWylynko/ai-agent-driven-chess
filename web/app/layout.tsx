@@ -1,5 +1,11 @@
 import './index.css';
+import { Inter } from "next/font/google"
 
+const inter = Inter({
+  weight: ["400", "500", "600"],
+  subsets: ["latin"],
+  variable: "--inter"
+})
 
 export const metadata = {
   title: 'Next.js',
@@ -13,7 +19,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className={`${inter.variable} antialiased font-inter`}>{children}</body>
     </html>
   )
 }

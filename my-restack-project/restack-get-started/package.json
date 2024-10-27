@@ -1,0 +1,36 @@
+{
+  "name": "@restackio/get-started",
+  "version": "1.0.12",
+  "description": "Get started with Restack AI SDK",
+  "keywords": [
+    "restack",
+    "starter",
+    "template"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@restackio/ai": "^0.0.75",
+    "@restackio/integrations-openai": "^0.0.24",
+    "@temporalio/workflow": "^1.11.3",
+    "nodemon": "^2.0.22",
+    "openai": "^4.68.4",
+    "ts-node": "^10.9.2",
+    "wait-on": "^8.0.1"
+  },
+  "scripts": {
+    "build-bin": "pnpm tsup --outDir bin --format esm bin/get-started.ts",
+    "service": "ts-node src/services.ts",
+    "schedule": "ts-node scheduleWorkflow.ts"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^0.7.0",
+    "tsup": "8.3.0",
+    "typescript": "5.6.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "rollup": "npm:@rollup/wasm-node"
+    }
+  },
+  "packageManager": "pnpm@9.2.0+sha512.98a80fd11c2e7096747762304106432b3ddc67dcf54b5a8c01c93f68a2cd5e05e6821849522a06fb76284d41a2660d5e334f2ee3bbf29183bf2e739b1dafa771"
+}

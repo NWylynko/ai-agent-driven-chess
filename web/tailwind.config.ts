@@ -1,5 +1,7 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+import { fontFamily } from "tailwindcss/defaultTheme";
+import type { Config } from "tailwindcss";
+
+export default {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -9,7 +11,11 @@ module.exports = {
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        inter: ["var(--inter)", ...fontFamily.sans],
+      },
+    },
   },
   plugins: [],
-}
+} satisfies Config

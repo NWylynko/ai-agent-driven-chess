@@ -15,7 +15,7 @@ function App() {
         </div>
       </header>
       
-      <main className="container mx-auto py-8 flex justify-center">
+      <main className=" mx-auto py-8 flex justify-center">
         <ChessBoard />
       </main>
       
