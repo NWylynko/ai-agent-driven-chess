@@ -1,3 +1,5 @@
+"use client"
+
 import { FlameIcon } from 'lucide-react';
 import { ChessBoard } from './components/ChessBoard';
 
