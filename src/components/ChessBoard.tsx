@@ -5,7 +5,7 @@ import { ChessPiece } from './ChessPiece';
 import { MoveIndicator } from './MoveIndicator';
 
 // Dummy function for AI move generation
-async function generateAIMove(_board: Board): Promise<{ from: Position; to: Position }> {
+async function generateAIMove(_board: Board) {
   // Here you would replace this with actual AI logic
   // For example, call a minimax function or a backend API for the move
 
@@ -14,6 +14,7 @@ async function generateAIMove(_board: Board): Promise<{ from: Position; to: Posi
   return {
     from: { row: 1, col: 0 }, // Example move
     to: { row: 3, col: 0 },   // Example move
+    reason: 'AI move'
   };
 }
 
@@ -32,7 +33,11 @@ export function ChessBoard() {
   const [board, setBoard] = useState<Board>(initialBoard);
   const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player>('white');
-  const [moveHistory, setMoveHistory] = useState<string[]>([]);
+  const [moveHistory, setMoveHistory] = useState<{
+    from: string;
+    to: string;
+    reason: string | null;
+  }[]>([]);
 
   const isValidMove = (fromRow: number, fromCol: number, toRow: number, toCol: number): boolean => {
     const piece = board[fromRow][fromCol];
@@ -107,20 +112,24 @@ export function ChessBoard() {
       setSelectedPiece({ row, col });
     } else {
       if (isValidMove(selectedPiece.row, selectedPiece.col, row, col)) {
-        makeMove(selectedPiece, { row, col });
+        makeMove(selectedPiece, { row, col }, null);
       }
       setSelectedPiece(null);
     }
   };
   
   // makeMove function, updating to set empty squares as " "
-  const makeMove = (from: Position, to: Position) => {
+  const makeMove = (from: Position, to: Position, reason: string | null) => {
     const newBoard = board.map(row => [...row]);
     const piece = newBoard[from.row][from.col];
     newBoard[to.row][to.col] = piece;
     newBoard[from.row][from.col] = " "; // Set the old position to " "
   
-    const move = `${piece}${String.fromCharCode(97 + from.col)}${8 - from.row} → ${String.fromCharCode(97 + to.col)}${8 - to.row}`;
+    const move = {
+      from: `${piece}${String.fromCharCode(97 + from.col)}${8 - from.row}`,
+      to: `${String.fromCharCode(97 + to.col)}${8 - to.row}`,
+      reason
+    }
     setMoveHistory([...moveHistory, move]);
   
     setBoard(newBoard);
@@ -131,7 +140,7 @@ export function ChessBoard() {
   useEffect(() => {
     const makeAIMove = async () => {
       const aiMove = await generateAIMove(board);
-      makeMove(aiMove.from, aiMove.to);
+      makeMove(aiMove.from, aiMove.to, aiMove.reason);
     };
 
     if (currentPlayer === 'black') {
@@ -181,7 +190,10 @@ export function ChessBoard() {
         <div className="max-h-[400px] min-w-[200px] overflow-y-auto">
           {moveHistory.map((move, index) => (
             <div key={index} className="py-1 text-slate-700">
-              {index + 1}. {move}
+              <div>
+                {index + 1}. {move.from} → {move.to}
+              </div>
+              <span className="text-sm text-slate-500">{move.reason}</span>
             </div>
           ))}
         </div>
