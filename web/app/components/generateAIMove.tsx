@@ -43,7 +43,7 @@ function describeMove(piece: string, from: Position, to: Position, isCapture: bo
   const fromNotation = toChessNotation(from);
   const toNotation = toChessNotation(to);
   return isCapture
-    ? `${pieceName} from ${fromNotation} captures on ${toNotation}`
+    ? `${pieceName} from ${fromNotation} on ${toNotation}`
     : `${pieceName} from ${fromNotation} to ${toNotation}`;
 }
 
@@ -123,40 +123,67 @@ export async function generateAIMove(board: Board) {
   console.log(board)
   console.log(possibleMoves);
 
-  const result = await backup_openai_gpt_choice(board);
+  const result = await backup_openai_gpt_choice(board, possibleMoves);
 
-  // console.log(result)
+  console.log(result)
 
-  const response = await fetch(`http://172.20.10.3:5000/weav`, {
-    method: "POST",
-    body: JSON.stringify({ board, possibleMoves }),
-    headers: {
-      "Content-Type": "application/json"
-    }
-  })
-  const data = await response.text();
+  // const response = await fetch(`http://172.20.10.3:5000/weav`, {
+  //   method: "POST",
+  //   body: JSON.stringify({ board, possibleMoves }),
+  //   headers: {
+  //     "Content-Type": "application/json"
+  //   }
+  // })
+  // const data = await response.text();
 
-  console.log(data)
+  // console.log(data)
 
   return result
 }
 
-async function backup_openai_gpt_choice(board: Board) {
+async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
+  // const result = await generateObject({
+  //   model: openai('gpt-4o'),
+  //   schema: z.object({
+  //     from: z.object({
+  //       row: z.number(),
+  //       col: z.number()
+  //     }),
+  //     to: z.object({
+  //       row: z.number(),
+  //       col: z.number()
+  //     }),
+  //     reason: z.string()
+  //   }),
+  //   prompt: `Given the following chess board and possible moves for black, choose the best move for black:\n\n${board} \n\n possible moves: ${possibleMoves.join(", ")}\n\n`,
+  // });
+
+  // console.log(result.object)
+
   const result = await generateObject({
     model: openai('gpt-4o'),
     schema: z.object({
-      from: z.object({
-        row: z.number(),
-        col: z.number()
-      }),
-      to: z.object({
-        row: z.number(),
-        col: z.number()
-      }),
+      move: z.string(),
       reason: z.string()
     }),
-    prompt: `Given the following chess board and possible moves for black, choose the best move for black:\n\n${board}`,
+    prompt: `Given the following chess board and possible moves for black, choose the best move for black. Take into consideration the following: potential threats resulting from the new position formed after the move, potential benefits, and how the opponent might respond. Reply only with the legal move as listed in the 'legal moves'. Here is the game state:\n\n${board} \n\n legal moves: ${possibleMoves.join(", ")}\n\n`,
   });
 
-  return result.object
+  console.log(result.object)
+
+  const [_1,_2,from,_3,to] = result.object.move.split(" ");
+
+  const fromRow = 8 - parseInt(from[1]);
+  const fromCol = from.charCodeAt(0) - 97;
+
+  const toRow = 8 - parseInt(to[1]);
+  const toCol = to.charCodeAt(0) - 97;
+
+  return {
+    reason: result.object.reason,
+    from: { row: fromRow, col: fromCol },
+    to: { row: toRow, col: toCol }
+  }
+
+  // return result.object
 }
