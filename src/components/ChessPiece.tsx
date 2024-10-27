@@ -1,7 +1,19 @@
 
 const pieceUnicode: { [key: string]: string } = {
-  'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',  // white pieces
-  'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'   // black pieces
+  // white pieces
+  'K': '♔', 
+  'Q': '♕', 
+  'R': '♖', 
+  'B': '♗', 
+  'N': '♘', 
+  'P': '♙', 
+  // black pieces
+  'k': '♚', 
+  'q': '♛', 
+  'r': '♜', 
+  'b': '♝', 
+  'n': '♞', 
+  'p': '♟'
 };
 
 interface ChessPieceProps {

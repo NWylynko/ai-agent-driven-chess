@@ -19,7 +19,7 @@ export const isPathClear = (
 
   // Check all squares between start and end (exclusive)
   while (currentRow !== toRow || currentCol !== toCol) {
-    if (board[currentRow][currentCol] !== '') {
+    if (board[currentRow][currentCol] !== ' ') {
       return false;
     }
     currentRow += rowStep;
