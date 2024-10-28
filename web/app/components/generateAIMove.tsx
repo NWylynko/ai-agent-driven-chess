@@ -185,8 +185,16 @@ async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
     
     Make sure your choices are logically sound, aiming to make moves that genuinely improve your position or put pressure on the opponent. Adjust your strategy based on the phase of the game (opening, middle, endgame) to choose the most appropriate moves.
 
+    !!!!!!!!!
     DON'T ALWAYS MOVE THE KNIGHT FIRST.
+    DON'T ALWAYS MOVE THE KNIGHT.
+    STOP MOVING THE KNIGHT
+    DEVELOP PAWNS FIRST
+    !!!!!!!!!
+    
+
     Here are some similar moved made in similar positions, use them as reference if they seem helpful.
+    LET ME KNOW IF YOU USE ANY SIMILAR MOVES PROVIDED!!!!
 
     ${dataString}
     `
