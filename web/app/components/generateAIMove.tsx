@@ -4,15 +4,9 @@ import type { Board } from "../types/chess";
 import { generateText, generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai'; // Ensure OPENAI_API_KEY environment variable is set
 import { z } from "zod"
+import { describeMove } from "./getPieceName";
 
-type Position = { row: number; col: number };
-
-// Convert board coordinates to chess notation
-function toChessNotation({ row, col }: Position): string {
-  const files = "abcdefgh"; // columns
-  const ranks = "87654321"; // rows
-  return `${files[col]}${ranks[row]}`;
-}
+export type Position = { row: number; col: number };
 
 // Utility function to check if a position is within the board
 function isValidPosition(row: number, col: number): boolean {
@@ -22,29 +16,6 @@ function isValidPosition(row: number, col: number): boolean {
 // Check if a square contains an opponent's piece
 function isOpponentPiece(piece: string, targetPiece: string): boolean {
   return targetPiece !== ' ' && targetPiece.toUpperCase() === targetPiece && piece === piece.toLowerCase();
-}
-
-// Map piece symbols to names
-function getPieceName(piece: string): string {
-  switch (piece.toLowerCase()) {
-    case 'p': return "Pawn";
-    case 'r': return "Rook";
-    case 'n': return "Knight";
-    case 'b': return "Bishop";
-    case 'q': return "Queen";
-    case 'k': return "King";
-    default: return "";
-  }
-}
-
-// Generate human-readable description of a move
-function describeMove(piece: string, from: Position, to: Position, isCapture: boolean): string {
-  const pieceName = getPieceName(piece);
-  const fromNotation = toChessNotation(from);
-  const toNotation = toChessNotation(to);
-  return isCapture
-    ? `${pieceName} from ${fromNotation} on ${toNotation}`
-    : `${pieceName} from ${fromNotation} to ${toNotation}`;
 }
 
 // Generate possible moves for a black piece
@@ -167,6 +138,29 @@ async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
       reason: z.string()
     }),
     prompt: `Given the following chess board and possible moves for black, choose the best move for black. Take into consideration the following: potential threats resulting from the new position formed after the move, potential benefits, and how the opponent might respond. Reply only with the legal move as listed in the 'legal moves'. Here is the game state:\n\n${board} \n\n legal moves: ${possibleMoves.join(", ")}\n\n`,
+  
+    system: `
+    You are an AI chess player. Your task is to play chess by evaluating the current state of the board and making the best possible move from a given list of legal moves. You will be provided with the board in the following format:
+    
+    - An 8x8 array where each element represents a square on the chessboard.
+    - Capital letters indicate White pieces, and lowercase letters indicate Black pieces:
+      - 'R'/'r': Rook
+      - 'N'/'n': Knight
+      - 'B'/'b': Bishop
+      - 'Q'/'q': Queen
+      - 'K'/'k': King
+      - 'P'/'p': Pawn
+      - ' ': Empty square
+    
+    You will also receive a list of possible moves in standard chess notation. Your task is to:
+    1. Evaluate the current board position and consider material balance, piece activity, king safety, control of the center, and potential tactics.
+    2. Choose the move from the list of possible moves that maximizes advantage or minimizes disadvantage.
+    3. Explain your reasoning behind the move selection, considering the strategic and tactical implications.
+    
+    Make sure your choices are logically sound, aiming to make moves that genuinely improve your position or put pressure on the opponent. Adjust your strategy based on the phase of the game (opening, middle, endgame) to choose the most appropriate moves.
+    `
+  
+  
   });
 
   console.log(result.object)
@@ -186,4 +180,23 @@ async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
   }
 
   // return result.object
+}
+
+
+export async function evaluate_players_move(board: Board, moveMade: string) {
+
+  const result = await generateObject({
+    model: openai('gpt-4o'),
+    schema: z.object({
+      analysis: z.string()
+    }),
+    prompt: `Given the following chess board and the move made by the player, evaluate the move and provide a reason for the evaluation. Here is the game state:\n\n${board} \n\n move made: ${moveMade}\n\n`,
+  
+    system: `You are an AI chess player.`
+  
+  
+  });
+
+  return(result.object)
+
 }

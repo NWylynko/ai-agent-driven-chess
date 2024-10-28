@@ -3,8 +3,9 @@ import type { Board, Player, Position } from '../types/chess';
 import { isPathClear } from '../utils/chessUtils';
 import { ChessPiece } from './ChessPiece';
 import { MoveIndicator } from './MoveIndicator';
-import { generateAIMove } from './generateAIMove';
+import { evaluate_players_move, generateAIMove } from './generateAIMove';
 import { recordGameBoard } from '../actions';
+import { describeMove, getPieceName } from './getPieceName';
 
 const initialBoard: Board = [
   ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
@@ -22,6 +23,7 @@ export function ChessBoard() {
   const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<Player>('white');
   const [moveHistory, setMoveHistory] = useState<{
+    moveId: string;
     from: string;
     to: string;
     reason: string | null;
@@ -130,7 +132,7 @@ export function ChessBoard() {
     return moves;
   }, [selectedPiece, board]);
 
-  const handleSquareClick = (row: number, col: number) => {
+  const handleSquareClick = async (row: number, col: number) => {
     if (currentPlayer === 'black') return; // Prevent user from moving on black's turn
     
     if (!selectedPiece) {
@@ -145,7 +147,13 @@ export function ChessBoard() {
       setSelectedPiece({ row, col });
     } else {
       if (isValidMove(selectedPiece.row, selectedPiece.col, row, col)) {
-        makeMove(selectedPiece, { row, col }, null);
+  
+        const move = makeMove(selectedPiece, { row, col }, "Generating Analysis...");
+
+        const moveDescription = describeMove(board[selectedPiece.row][selectedPiece.col], selectedPiece, { row, col }, false)
+        const quality = await evaluate_players_move(board, moveDescription)
+
+        updateMoveReason(move.moveId, quality.analysis)
       }
       setSelectedPiece(null);
     }
@@ -158,17 +166,31 @@ export function ChessBoard() {
     newBoard[from.row][from.col] = " ";
 
     const move = {
+      moveId: crypto.randomUUID(),
       from: `${piece}${String.fromCharCode(97 + from.col)}${8 - from.row}`,
       to: `${String.fromCharCode(97 + to.col)}${8 - to.row}`,
       reason
     }
-    setMoveHistory([...moveHistory, move]);
+    setMoveHistory((moveHistory) => ([...moveHistory, move]));
   
     setBoard(newBoard);
     setCurrentPlayer(currentPlayer === 'white' ? 'black' : 'white');
 
     void recordGameBoard(gameId, newBoard)
+
+    return move
   };
+
+  const updateMoveReason = (moveId: string, reason: string) => {
+    setMoveHistory((existingMoves) => {
+      return existingMoves.map(move => {
+        if (move.moveId === moveId) {
+          return { ...move, reason }
+        }
+        return move
+      })
+    });
+  }
 
   useEffect(() => {
     const makeAIMove = async () => {
