@@ -27,6 +27,7 @@ export function ChessBoard() {
     from: string;
     to: string;
     reason: string | null;
+    by: Player;
   }[]>([]);
   const [gameId] = useState<string>(crypto.randomUUID());
 
@@ -151,9 +152,9 @@ export function ChessBoard() {
         const move = makeMove(selectedPiece, { row, col }, "Generating Analysis...");
 
         const moveDescription = describeMove(board[selectedPiece.row][selectedPiece.col], selectedPiece, { row, col }, false)
-        const quality = await evaluate_players_move(board, moveDescription)
+        const analysis = await evaluate_players_move(board, moveDescription)
 
-        updateMoveReason(move.moveId, quality.analysis)
+        updateMoveReason(move.moveId, analysis)
       }
       setSelectedPiece(null);
     }
@@ -169,8 +170,9 @@ export function ChessBoard() {
       moveId: crypto.randomUUID(),
       from: `${piece}${String.fromCharCode(97 + from.col)}${8 - from.row}`,
       to: `${String.fromCharCode(97 + to.col)}${8 - to.row}`,
-      reason
-    }
+      reason,
+      by: currentPlayer === 'white' ? 'black' : 'white'
+    } as const
     setMoveHistory((moveHistory) => ([...moveHistory, move]));
   
     setBoard(newBoard);
@@ -213,14 +215,14 @@ export function ChessBoard() {
           <div className="grid grid-cols-[auto_repeat(8,_1fr)_auto]">
             <div />
             {Array.from({ length: 8 }, (_, i) => (
-              <div key={i} className="w-16 h-6 flex items-center justify-center text-slate-800">
+              <div key={i} className="w-16 h-6 flex items-center justify-center text-slate-400">
                 {String.fromCharCode(97 + i)}
               </div>
             ))}
             <div />
             {board.map((row, rowIndex) => (
               <Fragment key={rowIndex}>
-                <div className="flex items-center justify-center w-6 text-slate-800">
+                <div className="flex items-center justify-center w-6 text-slate-400">
                   {8 - rowIndex}
                 </div>
                 {row.map((piece, colIndex) => {
@@ -246,14 +248,14 @@ export function ChessBoard() {
                     </div>
                   );
                 })}
-                <div className="flex items-center justify-center w-6 text-slate-800">
+                <div className="flex items-center justify-center w-6 text-slate-400">
                   {8 - rowIndex}
                 </div>
               </Fragment>
             ))}
             <div />
             {Array.from({ length: 8 }, (_, i) => (
-              <div key={i} className="w-16 h-6 flex items-center justify-center text-slate-800">
+              <div key={i} className="w-16 h-6 flex items-center justify-center text-slate-400">
                 {String.fromCharCode(97 + i)}
               </div>
             ))}
@@ -262,13 +264,13 @@ export function ChessBoard() {
         </div>
       </div>
       
-      <div className="flex flex-col items-center max-w-[300px]">
+      <div className="flex flex-col items-center w-[300px]">
         <div className="text-xl font-semibold mb-4 text-slate-800">
           Move History
         </div>
         <div className="max-h-[600px] min-w-[200px] overflow-y-auto">
           {moveHistory.map((move, index) => (
-            <MoveHistory key={index}  move={move} index={index} />
+            <MoveHistory key={index}  move={move} index={index} by={move.by} />
           ))}
         </div>
       </div>
@@ -282,6 +284,7 @@ type MoveHistoryProps = {
     to: string;
     reason: string | null;
   };
+  by: "white" | "black";
   index: number;
 };
 
@@ -294,8 +297,12 @@ const MoveHistory = (props: MoveHistoryProps) => {
 
   return (
     <div ref={ref} className="py-1 text-slate-700">
-      <div>
-        {props.index + 1}. {props.move.from} → {props.move.to}
+      <div className="flex flex-row justify-between">
+        <div>
+          {props.index + 1}. {props.move.from} → {props.move.to}
+        </div>
+        {props.by === "white" ? <div className="px-1 border-2 rounded bg-white border-black text-black">White</div> : null}
+        {props.by === "black" ? <div className="px-1 border-2 rounded bg-black border-white text-white">Black</div> : null}
       </div>
       <span className="text-sm italic text-slate-500">{props.move.reason}</span>
     </div>

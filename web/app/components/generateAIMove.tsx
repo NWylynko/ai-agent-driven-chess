@@ -131,13 +131,17 @@ async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
 
   // console.log(result.object)
 
+  const renderedBoard = renderBoard(board)
+
+  console.log(renderedBoard)
+
   const result = await generateObject({
     model: openai('gpt-4o'),
     schema: z.object({
       move: z.string(),
       reason: z.string()
     }),
-    prompt: `Given the following chess board and possible moves for black, choose the best move for black. Take into consideration the following: potential threats resulting from the new position formed after the move, potential benefits, and how the opponent might respond. Reply only with the legal move as listed in the 'legal moves'. Here is the game state:\n\n${board} \n\n legal moves: ${possibleMoves.join(", ")}\n\n`,
+    prompt: `Given the following chess board and possible moves for black, choose the best move for black. Take into consideration the following: potential threats resulting from the new position formed after the move, potential benefits, and how the opponent might respond. Reply only with the legal move as listed in the 'legal moves'. Here is the game state:\n\n${renderedBoard} \n\n legal moves: ${possibleMoves.join(", ")}\n\n`,
   
     system: `
     You are an AI chess player. Your task is to play chess by evaluating the current state of the board and making the best possible move from a given list of legal moves. You will be provided with the board in the following format:
@@ -185,18 +189,23 @@ async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
 
 export async function evaluate_players_move(board: Board, moveMade: string) {
 
-  const result = await generateObject({
+  const result = await generateText({
     model: openai('gpt-4o'),
-    schema: z.object({
-      analysis: z.string()
-    }),
-    prompt: `Given the following chess board and the move made by the player, evaluate the move and provide a reason for the evaluation. Here is the game state:\n\n${board} \n\n move made: ${moveMade}\n\n`,
+    // schema: z.object({
+    //   analysis: z.string()
+    // }),
+    prompt: `Given the following chess board and the move made by the player, evaluate the move and provide a reason for the evaluation. Here is the game state:\n\n${board} \n\n move made: ${moveMade}\n\n Keep your analysis short and to the point (1-2 sentences).`,
   
-    system: `You are an AI chess player.`
+    system: `You are an AI chess player.`,
   
+    maxTokens: 100
   
   });
 
-  return(result.object)
+  return result.text
 
+}
+
+function renderBoard(board: Board) {
+  return board.map(row => row.join("")).join("\n")
 }
