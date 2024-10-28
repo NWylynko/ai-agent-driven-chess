@@ -5,6 +5,12 @@ import { generateText, generateObject } from 'ai';
 import { openai } from '@ai-sdk/openai'; // Ensure OPENAI_API_KEY environment variable is set
 import { z } from "zod"
 import { describeMove } from "./getPieceName";
+import weaviate from 'weaviate-client'
+
+
+function boardToString(board: string[][]): string {
+  return board.map(row => row.join('')).join('');
+}
 
 export type Position = { row: number; col: number };
 
@@ -112,28 +118,44 @@ export async function generateAIMove(board: Board) {
   return result
 }
 
-async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
-  // const result = await generateObject({
-  //   model: openai('gpt-4o'),
-  //   schema: z.object({
-  //     from: z.object({
-  //       row: z.number(),
-  //       col: z.number()
-  //     }),
-  //     to: z.object({
-  //       row: z.number(),
-  //       col: z.number()
-  //     }),
-  //     reason: z.string()
-  //   }),
-  //   prompt: `Given the following chess board and possible moves for black, choose the best move for black:\n\n${board} \n\n possible moves: ${possibleMoves.join(", ")}\n\n`,
-  // });
+async function get_weaviate_data(board: Board) {
+  try {
+        
+    const client = await weaviate.connectToWeaviateCloud(
+      'https://j9bgrypscuy6lu7prupea.c0.us-west3.gcp.weaviate.cloud', { 
+        authCredentials: new weaviate.ApiKey('0eXR65atXJQi8aBQdb3m6HuCVtI8LmNIiv3C'),
+        headers: {
+          'X-OpenAI-Api-Key': process.env.OPENAI_API_KEY!,
+        }
+      }
+    )
 
-  // console.log(result.object)
+    const games = client.collections.get("Games")
+
+    const query = boardToString(board)
+
+    console.log({ query})
+
+    const data = await games.query.nearText(query, { limit: 10 })
+  
+    const dataString = JSON.stringify(data)
+
+    console.log(dataString)
+
+    return dataString
+  } catch (error) {
+    console.error(error)
+    return "**No data found**"
+  }
+}
+
+async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
 
   const renderedBoard = renderBoard(board)
 
   console.log(renderedBoard)
+
+  const dataString = await get_weaviate_data(board)
 
   const result = await generateObject({
     model: openai('gpt-4o'),
@@ -162,12 +184,18 @@ async function backup_openai_gpt_choice(board: Board, possibleMoves: string[]) {
     3. Explain your reasoning behind the move selection, considering the strategic and tactical implications.
     
     Make sure your choices are logically sound, aiming to make moves that genuinely improve your position or put pressure on the opponent. Adjust your strategy based on the phase of the game (opening, middle, endgame) to choose the most appropriate moves.
+
+    DON'T ALWAYS MOVE THE KNIGHT FIRST.
+    Here are some similar moved made in similar positions, use them as reference if they seem helpful.
+
+    ${dataString}
     `
   
   
   });
 
   console.log(result.object)
+  console.log(dataString)
 
   const [_1,_2,from,_3,to] = result.object.move.split(" ");
 
